@@ -120,7 +120,6 @@ venv.bak/
 # Project specific
 test/
 bot.py
-pyproject.toml
 .vscode/
 
 # Spyder project settings
