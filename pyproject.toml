@@ -1,6 +1,6 @@
 [project]
 name = "nonebot-plugin-onebot2tg"
-version = "1.0.6"
+version = "1.0.8"
 description = "OneBot V11 与 Telegram 消息转发插件"
 readme = "README.md"
 requires-python = ">=3.10"
