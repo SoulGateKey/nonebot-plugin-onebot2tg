@@ -1,24 +1,36 @@
 from __future__ import annotations
 
-from nonebot import get_adapter, logger
+from nonebot import logger, get_adapter
+from nonebot.rule import is_type
+from nonebot.drivers import Request
+from nonebot.plugin.on import on_message
+from nonebot.adapters.telegram import Bot as TGBot
 from nonebot.adapters.onebot.v11 import (
     Bot as OB11Bot,
+)
+from nonebot.adapters.onebot.v11 import (
     Message as OB11Message,
+)
+from nonebot.adapters.onebot.v11 import (
     MessageEvent as OB11MessageEvent,
-    GroupMessageEvent as OB11GroupMessageEvent,
-    PrivateMessageEvent as OB11PrivateMessageEvent,
+)
+from nonebot.adapters.onebot.v11 import (
     MessageSegment as OB11Segment,
 )
-from nonebot.adapters.telegram import Bot as TGBot
+from nonebot.adapters.onebot.v11 import (
+    GroupMessageEvent as OB11GroupMessageEvent,
+)
+from nonebot.adapters.onebot.v11 import (
+    PrivateMessageEvent as OB11PrivateMessageEvent,
+)
 from nonebot.adapters.telegram.event import MessageEvent as TGMessageEvent
 from nonebot.adapters.telegram.message import (
-    Message as TGMessage,
     File,
     Entity,
 )
-from nonebot.drivers import Request
-from nonebot.plugin.on import on_message
-from nonebot.rule import is_type
+from nonebot.adapters.telegram.message import (
+    Message as TGMessage,
+)
 
 from .config import Config
 
@@ -87,9 +99,7 @@ async def _download_tg_file(tg_bot: TGBot, file_id: str) -> bytes | None:
 # ============================================================
 #  TG Message → OneBot V11 Message
 # ============================================================
-async def _tg_message_to_ob11(
-    tg_bot: TGBot, event: TGMessageEvent
-) -> OB11Message:
+async def _tg_message_to_ob11(tg_bot: TGBot, event: TGMessageEvent) -> OB11Message:
     segments: list[OB11Segment] = []
 
     for seg in event.get_message():
@@ -180,7 +190,8 @@ async def _send_to_tg(
             try:
                 await tg_bot.send_to(
                     chat_id=chat_id,
-                    message=TGMessage([first_seg]) + TGMessage([Entity.text(full_caption)]),
+                    message=TGMessage([first_seg])
+                    + TGMessage([Entity.text(full_caption)]),
                 )
             except Exception as e:
                 logger.error(f"[{mode}] 发送图片到 TG 失败: {e}")
@@ -188,7 +199,8 @@ async def _send_to_tg(
             try:
                 await tg_bot.send_to(
                     chat_id=chat_id,
-                    message=TGMessage([first_seg]) + TGMessage([Entity.text(full_caption)]),
+                    message=TGMessage([first_seg])
+                    + TGMessage([Entity.text(full_caption)]),
                 )
                 for seg in file_segments[1:]:
                     await tg_bot.send_to(chat_id=chat_id, message=seg)
@@ -279,7 +291,13 @@ async def handle_ob11_message(event: OB11MessageEvent):
     # ---------- 转发模式（QQ → TG 单向） ----------
     if config.onebot2tg_enable_forward and config.onebot2tg_forward_target_chat_id:
         if is_group:
-            source = f"[群:{event.group_id}] {display_name}"
+            group_name = ""
+            try:
+                group_info = await ob11_bot.get_group_info(group_id=event.group_id)
+                group_name = group_info.get("group_name", "")
+            except Exception as e:
+                logger.warning(f"获取群信息失败: {e}")
+            source = f"[群:{group_name or event.group_id}] {display_name}"
         elif isinstance(event, OB11PrivateMessageEvent):
             source = f"[私聊] {display_name}"
         else:
