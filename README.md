@@ -19,6 +19,7 @@
 
 - [x] **互通模式**：指定一个 QQ 群与一个 Telegram 群/频道双向互通，消息实时同步
 - [x] **转发模式**：将 QQ 所有接收到的消息单向转发到 Telegram 私聊/频道/群聊
+- [x] 转发模式黑白名单，仅允许/除了名单内的群/qq号转发
 - [x] 使用指令临时关闭单向互通
 - [x] 互通模式和转发模式可同时开启不会重复发送消息
 - [x] Telegram 图片/贴纸下载会自动走适配器配置的代理
@@ -133,6 +134,8 @@
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
 | `ONEBOT2TG_FORWARD_TARGET_CHAT_ID` | `str \| int` | `""` | 转发模式下，QQ 消息转发到 TG 的目标 chat_id 或 用户ID |
+| `onebot2tg_forward_filter_mode` | `str` | `"none"` | 可选"none","blacklist","whitelist" |
+| `onebot2tg_forward_filter_list` | `list` | `["12345678","123"]`| 按照filter_mode的参数配置白名单或黑名单 |
 
 ## 🎉 使用示例
 

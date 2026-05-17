@@ -21,3 +21,10 @@ class Config(BaseModel):
     # 转发模式配置
     onebot2tg_forward_target_chat_id: str | int = ""
     """转发模式下，QQ消息转发到TG的目标chat_id（私聊或群）"""
+
+    # 转发模式黑白名单
+    onebot2tg_forward_filter_mode: str = "none"
+    """转发模式过滤方式：none（不过滤，默认）、blacklist（黑名单）、whitelist（白名单）"""
+
+    onebot2tg_forward_filter_list: list[str | int] = []
+    """转发模式过滤列表：QQ号或群号列表。黑名单模式下不转发这些来源的消息；白名单模式下只转发这些来源的消息"""

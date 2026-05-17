@@ -360,6 +360,18 @@ async def handle_ob11_message(event: OB11MessageEvent):
 
     # ---------- 转发模式（QQ → TG 单向） ----------
     if config.onebot2tg_enable_forward and config.onebot2tg_forward_target_chat_id:
+        user_id = str(event.user_id)
+
+        # 黑白名单过滤
+        filter_mode = str(config.onebot2tg_forward_filter_mode).lower()
+        filter_set = {str(x) for x in config.onebot2tg_forward_filter_list}
+        if filter_mode == "blacklist":
+            if user_id in filter_set or (is_group and group_id in filter_set):
+                return
+        elif filter_mode == "whitelist":
+            if user_id not in filter_set and not (is_group and group_id in filter_set):
+                return
+
         if is_group:
             group_name = ""
             try:
