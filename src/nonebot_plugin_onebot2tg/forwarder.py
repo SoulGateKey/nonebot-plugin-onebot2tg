@@ -165,7 +165,14 @@ async def _ob11_message_to_tg(
         elif seg.type == "face":
             caption_parts.append(f"[表情:{seg.data.get('id', '')}]")
         elif seg.type == "at":
-            caption_parts.append(f"@{seg.data.get('qq', '')}")
+            at_qq = seg.data.get("qq", "")
+            at_name = at_qq
+            try:
+                stranger_info = await bot.get_stranger_info(user_id=int(at_qq))
+                at_name = stranger_info.get("nickname", at_qq)
+            except Exception:
+                pass
+            caption_parts.append(f"@{at_name}")
         elif seg.type == "reply":
             pass
         else:
