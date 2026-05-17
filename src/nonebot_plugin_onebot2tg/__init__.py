@@ -12,7 +12,7 @@ __plugin_meta__ = PluginMetadata(
     description="OneBot V11 与 Telegram 双向消息转发插件",
     usage="配置 ONEBOT2TG_TARGET_CHAT_ID 和 ONEBOT2TG_OB_TARGET_GROUP_ID 即可自动转发",
     type="application",
-    homepage="",
+    homepage="https://github.com/SoulGateKey/nonebot-plugin-onebot2tg",
     config=Config,
     supported_adapters={
         "~onebot.v11",

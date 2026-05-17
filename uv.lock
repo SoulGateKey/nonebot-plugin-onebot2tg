@@ -906,6 +906,8 @@ version = "1.0.5"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
+    { name = "nonebot-adapter-onebot" },
+    { name = "nonebot-adapter-telegram" },
     { name = "nonebot-plugin-alconna" },
     { name = "nonebot-plugin-apscheduler" },
     { name = "nonebot-plugin-localstore" },
@@ -943,6 +945,8 @@ test = [
 [package.metadata]
 requires-dist = [
     { name = "httpx", specifier = ">=0.27.0,<1.0.0" },
+    { name = "nonebot-adapter-onebot", specifier = ">=2.4.6,<3.0.0" },
+    { name = "nonebot-adapter-telegram", specifier = ">=0.1.0b1" },
     { name = "nonebot-plugin-alconna", specifier = ">=0.60.0,<1.0.0" },
     { name = "nonebot-plugin-apscheduler", specifier = ">=0.5.0,<1.0.0" },
     { name = "nonebot-plugin-localstore", specifier = ">=0.7.4,<1.0.0" },
