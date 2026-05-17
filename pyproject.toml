@@ -59,7 +59,7 @@ search = 'version = "{current_version}"'
 replace = 'version = "{new_version}"'
 
 [tool.bumpversion.hooks.pre_commit]
-command = "uv lock"
+command = "uv lock && git add uv.lock"
 
 [tool.coverage.report]
 exclude_lines = [
