@@ -88,7 +88,10 @@ async def _download_tg_file(tg_bot: TGBot, file_id: str) -> bytes | None:
         request = Request("GET", url, proxy=proxy_url)
         response = await adapter.request(request)
         if response.status_code == 200 and response.content:
-            return response.content
+            content = response.content
+            if isinstance(content, str):
+                return content.encode("utf-8")
+            return content
         logger.warning(f"下载 TG 文件失败，状态码: {response.status_code}")
         return None
     except Exception as e:
