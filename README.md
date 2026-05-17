@@ -120,6 +120,13 @@
 | `ONEBOT2TG_BRIDGE_GROUP_ID` | `str \| int` | `""` | 互通模式下，要互通的 QQ 群号 |
 | `ONEBOT2TG_BRIDGE_TG_CHAT_ID` | `str \| int` | `""` | 互通模式下，TG 对应的 chat_id（群或频道） |
 
+
+#### 互通模式指令表
+| 指令  | 触发端  | 作用 | 
+| :---: | :---: | :---: | 
+| /ruler | Telegram  |  临时关闭 TG → QQ 的互通转发   | 
+| /sese | QQ  |  临时关闭 QQ → TG 的互通转发   | 
+
 ### 转发模式配置
 
 | 配置项 | 类型 | 默认值 | 说明 |

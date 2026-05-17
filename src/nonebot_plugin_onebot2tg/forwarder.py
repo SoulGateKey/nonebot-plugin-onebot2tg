@@ -3,7 +3,7 @@ from __future__ import annotations
 from nonebot import logger, get_adapter
 from nonebot.rule import is_type
 from nonebot.drivers import Request
-from nonebot.plugin.on import on_message
+from nonebot.plugin.on import on_command, on_message
 from nonebot.adapters.telegram import Bot as TGBot
 from nonebot.adapters.onebot.v11 import (
     Bot as OB11Bot,
@@ -35,6 +35,10 @@ from nonebot.adapters.telegram.message import (
 from .config import Config
 
 config: Config
+
+# 运行时临时开关（重启后失效）
+_bridge_tg_to_qq_paused: bool = False
+_bridge_qq_to_tg_paused: bool = False
 
 
 async def get_tg_bot() -> TGBot | None:
@@ -225,6 +229,51 @@ async def _send_to_tg(
 
 
 # ============================================================
+#  TG 命令：/ruler 临时关闭 TG → QQ
+# ============================================================
+tg_ruler = on_command("ruler", rule=is_type(TGMessageEvent), aliases={"Ruler"})
+
+
+@tg_ruler.handle()
+async def handle_tg_ruler(event: TGMessageEvent):
+    global _bridge_tg_to_qq_paused
+    if not config.onebot2tg_enable_bridge:
+        return
+    chat_id = str(event.chat.id) if hasattr(event, "chat") else ""
+    if chat_id != str(config.onebot2tg_bridge_tg_chat_id):
+        return
+    _bridge_tg_to_qq_paused = True
+    tg_bot = await get_tg_bot()
+    if tg_bot is not None:
+        await tg_bot.send_message(chat_id=chat_id, text="乳了！已临时关闭 TG→QQ 转发")
+
+
+# ============================================================
+#  QQ 命令：/sese 临时关闭 QQ → TG
+# ============================================================
+ob_sese = on_command("sese", rule=is_type(OB11MessageEvent), aliases={"Sese"})
+
+
+@ob_sese.handle()
+async def handle_ob_sese(event: OB11MessageEvent):
+    global _bridge_qq_to_tg_paused
+    if not config.onebot2tg_enable_bridge:
+        return
+    is_group = isinstance(event, OB11GroupMessageEvent)
+    group_id = str(event.group_id) if is_group else ""
+    if is_group and group_id != str(config.onebot2tg_bridge_group_id):
+        return
+    _bridge_qq_to_tg_paused = True
+    ob11_bot = await get_ob11_bot()
+    if ob11_bot is not None:
+        msg = OB11Message([OB11Segment.text("涩涩时间！已临时关闭 QQ→TG 转发")])
+        if is_group:
+            await ob11_bot.send_group_msg(group_id=event.group_id, message=msg)
+        else:
+            await ob11_bot.send_private_msg(user_id=event.user_id, message=msg)
+
+
+# ============================================================
 #  TG 消息处理器（仅互通模式）
 # ============================================================
 tg_msg = on_message(rule=is_type(TGMessageEvent))
@@ -233,6 +282,8 @@ tg_msg = on_message(rule=is_type(TGMessageEvent))
 @tg_msg.handle()
 async def handle_tg_message(event: TGMessageEvent):
     if not config.onebot2tg_enable_bridge:
+        return
+    if _bridge_tg_to_qq_paused:
         return
     if not config.onebot2tg_bridge_group_id:
         return
@@ -287,15 +338,16 @@ async def handle_ob11_message(event: OB11MessageEvent):
     # ---------- 互通模式 ----------
     if config.onebot2tg_enable_bridge and config.onebot2tg_bridge_tg_chat_id:
         if is_group and group_id == str(config.onebot2tg_bridge_group_id):
-            caption, file_segments = await _ob11_message_to_tg(ob11_bot, event)
-            await _send_to_tg(
-                tg_bot,
-                config.onebot2tg_bridge_tg_chat_id,
-                display_name,
-                caption,
-                file_segments,
-                "互通",
-            )
+            if not _bridge_qq_to_tg_paused:
+                caption, file_segments = await _ob11_message_to_tg(ob11_bot, event)
+                await _send_to_tg(
+                    tg_bot,
+                    config.onebot2tg_bridge_tg_chat_id,
+                    display_name,
+                    caption,
+                    file_segments,
+                    "互通",
+                )
             return
 
     # ---------- 转发模式（QQ → TG 单向） ----------
