@@ -135,7 +135,7 @@
 |--------|------|--------|------|
 | `ONEBOT2TG_FORWARD_TARGET_CHAT_ID` | `str \| int` | `""` | 转发模式下，QQ 消息转发到 TG 的目标 chat_id 或 用户ID |
 | `onebot2tg_forward_filter_mode` | `str` | `"none"` | 可选"none","blacklist","whitelist" |
-| `onebot2tg_forward_filter_list` | `list` | `["12345678","123"]`| 按照filter_mode的参数配置白名单或黑名单 |
+| `onebot2tg_forward_filter_list` | `list` | `[]`| 按照filter_mode的参数配置白名单或黑名单,如`["12345678","123"]` |
 
 ## 🎉 使用示例
 
