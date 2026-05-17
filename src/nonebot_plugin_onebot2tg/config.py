@@ -21,5 +21,3 @@ class Config(BaseModel):
     # 转发模式配置
     onebot2tg_forward_target_chat_id: str | int = ""
     """转发模式下，QQ消息转发到TG的目标chat_id（私聊或群）"""
-
-
