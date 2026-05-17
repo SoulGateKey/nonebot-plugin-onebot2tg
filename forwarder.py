@@ -10,10 +10,7 @@ from nonebot.adapters.onebot.v11 import (
     MessageSegment as OB11Segment,
 )
 from nonebot.adapters.telegram import Bot as TGBot
-from nonebot.adapters.telegram.event import (
-    MessageEvent as TGMessageEvent,
-    PrivateMessageEvent as TGPrivateMessageEvent,
-)
+from nonebot.adapters.telegram.event import MessageEvent as TGMessageEvent
 from nonebot.adapters.telegram.message import (
     Message as TGMessage,
     File,
@@ -60,41 +57,6 @@ def _tg_display_name(event: TGMessageEvent) -> str:
     if user:
         return user.username or user.first_name or event.get_user_id()
     return event.get_user_id()
-
-
-# ============================================================
-#  OneBot V11 Message → TG Message
-# ============================================================
-async def _ob11_message_to_tg(
-    bot: OB11Bot, event: OB11MessageEvent
-) -> tuple[str, list]:
-    caption_parts: list[str] = []
-    file_segments: list = []
-
-    for seg in event.get_message():
-        if seg.type == "text":
-            caption_parts.append(seg.data.get("text", ""))
-        elif seg.type == "image":
-            try:
-                file_info = await bot.get_image(file=seg.data.get("file", ""))
-                url = file_info.get("url", "")
-                if url:
-                    file_segments.append(File.photo(url))
-                else:
-                    caption_parts.append("[图片]")
-            except Exception as e:
-                logger.warning(f"获取图片失败: {e}")
-                caption_parts.append("[图片]")
-        elif seg.type == "face":
-            caption_parts.append(f"[表情:{seg.data.get('id', '')}]")
-        elif seg.type == "at":
-            caption_parts.append(f"@{seg.data.get('qq', '')}")
-        elif seg.type == "reply":
-            pass
-        else:
-            caption_parts.append(f"[{seg.type}]")
-
-    return "".join(caption_parts), file_segments
 
 
 # ============================================================
@@ -167,6 +129,41 @@ async def _tg_message_to_ob11(
     return OB11Message(segments)
 
 
+# ============================================================
+#  OneBot V11 Message → TG Message
+# ============================================================
+async def _ob11_message_to_tg(
+    bot: OB11Bot, event: OB11MessageEvent
+) -> tuple[str, list]:
+    caption_parts: list[str] = []
+    file_segments: list = []
+
+    for seg in event.get_message():
+        if seg.type == "text":
+            caption_parts.append(seg.data.get("text", ""))
+        elif seg.type == "image":
+            try:
+                file_info = await bot.get_image(file=seg.data.get("file", ""))
+                url = file_info.get("url", "")
+                if url:
+                    file_segments.append(File.photo(url))
+                else:
+                    caption_parts.append("[图片]")
+            except Exception as e:
+                logger.warning(f"获取图片失败: {e}")
+                caption_parts.append("[图片]")
+        elif seg.type == "face":
+            caption_parts.append(f"[表情:{seg.data.get('id', '')}]")
+        elif seg.type == "at":
+            caption_parts.append(f"@{seg.data.get('qq', '')}")
+        elif seg.type == "reply":
+            pass
+        else:
+            caption_parts.append(f"[{seg.type}]")
+
+    return "".join(caption_parts), file_segments
+
+
 async def _send_to_tg(
     tg_bot: TGBot,
     chat_id: str | int,
@@ -206,60 +203,47 @@ async def _send_to_tg(
 
 
 # ============================================================
-#  统一 TG 消息处理器（解决重复触发问题）
+#  TG 消息处理器（仅互通模式）
 # ============================================================
 tg_msg = on_message(rule=is_type(TGMessageEvent))
 
 
 @tg_msg.handle()
 async def handle_tg_message(event: TGMessageEvent):
+    if not config.onebot2tg_enable_bridge:
+        return
+    if not config.onebot2tg_bridge_group_id:
+        return
+
+    chat_id = str(event.chat.id) if hasattr(event, "chat") else ""
+    if chat_id != str(config.onebot2tg_bridge_tg_chat_id):
+        return
+
     tg_bot = await get_tg_bot()
     if tg_bot is None:
         return
 
-    chat_id = str(event.chat.id) if hasattr(event, "chat") else ""
-    is_private = isinstance(event, TGPrivateMessageEvent)
+    ob11_bot = await get_ob11_bot()
+    if ob11_bot is None:
+        return
 
-    # ---------- 互通模式 ----------
-    if config.onebot2tg_enable_bridge and config.onebot2tg_bridge_group_id:
-        if chat_id == str(config.onebot2tg_bridge_tg_chat_id):
-            ob11_bot = await get_ob11_bot()
-            if ob11_bot:
-                display_name = _tg_display_name(event)
-                ob11_msg = await _tg_message_to_ob11(tg_bot, event)
-                prefix = OB11Segment.text(f"{display_name}:\n")
-                final_msg = OB11Message([prefix]) + ob11_msg
-                try:
-                    await ob11_bot.send_group_msg(
-                        group_id=int(config.onebot2tg_bridge_group_id),
-                        message=final_msg,
-                    )
-                    logger.debug("[互通] 已转发 TG 消息到 QQ群")
-                except Exception as e:
-                    logger.error(f"[互通] 转发 TG 消息到 QQ群失败: {e}")
-                return  # 互通消息不进入转发模式
+    display_name = _tg_display_name(event)
+    ob11_msg = await _tg_message_to_ob11(tg_bot, event)
+    prefix = OB11Segment.text(f"{display_name}:\n")
+    final_msg = OB11Message([prefix]) + ob11_msg
 
-    # ---------- 转发模式 ----------
-    if config.onebot2tg_enable_forward and config.onebot2tg_forward_reply_chat_id:
-        if is_private:
-            ob11_bot = await get_ob11_bot()
-            if ob11_bot:
-                display_name = _tg_display_name(event)
-                ob11_msg = await _tg_message_to_ob11(tg_bot, event)
-                prefix = OB11Segment.text(f"[TG私聊] {display_name}:\n")
-                final_msg = OB11Message([prefix]) + ob11_msg
-                try:
-                    await ob11_bot.send_group_msg(
-                        group_id=int(config.onebot2tg_forward_reply_chat_id),
-                        message=final_msg,
-                    )
-                    logger.debug("[转发] 已转发 TG 私聊消息到 OneBot 群")
-                except Exception as e:
-                    logger.error(f"[转发] 转发 TG 私聊消息到 OneBot 群失败: {e}")
+    try:
+        await ob11_bot.send_group_msg(
+            group_id=int(config.onebot2tg_bridge_group_id),
+            message=final_msg,
+        )
+        logger.debug("[互通] 已转发 TG 消息到 QQ群")
+    except Exception as e:
+        logger.error(f"[互通] 转发 TG 消息到 QQ群失败: {e}")
 
 
 # ============================================================
-#  统一 OneBot 消息处理器
+#  OneBot 消息处理器（互通 + 转发模式）
 # ============================================================
 ob11_msg = on_message(rule=is_type(OB11MessageEvent))
 
@@ -276,11 +260,11 @@ async def handle_ob11_message(event: OB11MessageEvent):
 
     is_group = isinstance(event, OB11GroupMessageEvent)
     group_id = str(event.group_id) if is_group else ""
+    display_name = _ob11_display_name(event)
 
     # ---------- 互通模式 ----------
     if config.onebot2tg_enable_bridge and config.onebot2tg_bridge_tg_chat_id:
         if is_group and group_id == str(config.onebot2tg_bridge_group_id):
-            display_name = _ob11_display_name(event)
             caption, file_segments = await _ob11_message_to_tg(ob11_bot, event)
             await _send_to_tg(
                 tg_bot,
@@ -290,11 +274,10 @@ async def handle_ob11_message(event: OB11MessageEvent):
                 file_segments,
                 "互通",
             )
-            return  # 互通消息不进入转发模式
+            return
 
-    # ---------- 转发模式 ----------
+    # ---------- 转发模式（QQ → TG 单向） ----------
     if config.onebot2tg_enable_forward and config.onebot2tg_forward_target_chat_id:
-        display_name = _ob11_display_name(event)
         if is_group:
             source = f"[群:{event.group_id}] {display_name}"
         elif isinstance(event, OB11PrivateMessageEvent):
