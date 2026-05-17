@@ -47,7 +47,7 @@ requires = ["uv_build>=0.10.0,<0.11.0"]
 build-backend = "uv_build"
 
 [tool.bumpversion]
-current_version = "1.0.6"
+current_version = "1.0.7"
 commit = true
 commit_args = "--no-verify"
 message = "release: bump version from {current_version} to {new_version}"
@@ -60,8 +60,10 @@ replace = 'version = "{new_version}"'
 
 [[tool.bumpversion.files]]
 filename = "uv.lock"
-search = 'name = "nonebot-plugin-onebot2tg"\nversion = "{current_version}"'
-replace = 'name = "nonebot-plugin-onebot2tg"\nversion = "{new_version}"'
+search = """name = "nonebot-plugin-onebot2tg"
+version = "{current_version}""""
+replace = """name = "nonebot-plugin-onebot2tg"
+version = "{new_version}""""
 
 [tool.coverage.report]
 exclude_lines = [
