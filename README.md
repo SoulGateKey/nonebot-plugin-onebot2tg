@@ -9,7 +9,7 @@
 [![uv](https://img.shields.io/badge/package%20manager-uv-black?style=flat-square&logo=uv)](https://github.com/astral-sh/uv)
 <br/>
 [![ruff](https://img.shields.io/badge/code%20style-ruff-black?style=flat-square&logo=ruff)](https://github.com/astral-sh/ruff)
-[![pre-commit](https://results.pre-commit.ci/badge/github/SoulGateKey/nonebot-plugin-onebot2tg/master.svg)](https://results.pre-commit.ci/latest/github/SoulGateKey/nonebot-plugin-onebot2tg/master)
+[![pre-commit](https://results.pre-commit.ci/badge/github/SoulGateKey/nonebot-plugin-onebot2tg/main.svg)](https://results.pre-commit.ci/latest/github/SoulGateKey/nonebot-plugin-onebot2tg/main)
 </div>
 
   OneBot V11 与 Telegram 消息转发插件  
@@ -54,26 +54,26 @@
 <summary>uv</summary>
 
     uv add nonebot-plugin-onebot2tg
-安装仓库 master 分支
+安装仓库 main 分支
 
-    uv add git+https://github.com/SoulGateKey/nonebot-plugin-onebot2tg@master
+    uv add git+https://github.com/SoulGateKey/nonebot-plugin-onebot2tg@main
 </details>
 
 <details>
 <summary>pdm</summary>
 
     pdm add nonebot-plugin-onebot2tg
-安装仓库 master 分支
+安装仓库 main 分支
 
-    pdm add git+https://github.com/SoulGateKey/nonebot-plugin-onebot2tg@master
+    pdm add git+https://github.com/SoulGateKey/nonebot-plugin-onebot2tg@main
 </details>
 <details>
 <summary>poetry</summary>
 
     poetry add nonebot-plugin-onebot2tg
-安装仓库 master 分支
+安装仓库 main 分支
 
-    poetry add git+https://github.com/SoulGateKey/nonebot-plugin-onebot2tg@master
+    poetry add git+https://github.com/SoulGateKey/nonebot-plugin-onebot2tg@main
 </details>
 
 打开 nonebot2 项目根目录下的 `pyproject.toml` 文件, 在 `[tool.nonebot]` 部分追加写入
