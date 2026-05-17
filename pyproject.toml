@@ -15,9 +15,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/SoulGateKey/nonebot-plugin-tgqbridge"
-Issues = "https://github.com/SoulGateKey/nonebot-plugin-tgqbridge/issues"
-Repository = "https://github.com/SoulGateKey/nonebot-plugin-tgqbridge.git"
+Homepage = "https://github.com/SoulGateKey/nonebot-plugin-onebot2tg"
+Issues = "https://github.com/SoulGateKey/nonebot-plugin-onebot2tg/issues"
+Repository = "https://github.com/SoulGateKey/nonebot-plugin-onebot2tg.git"
 
 [dependency-groups]
 dev = [
