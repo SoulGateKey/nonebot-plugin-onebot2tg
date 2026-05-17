@@ -242,10 +242,15 @@ async def handle_tg_ruler(event: TGMessageEvent):
     chat_id = str(event.chat.id) if hasattr(event, "chat") else ""
     if chat_id != str(config.onebot2tg_bridge_tg_chat_id):
         return
-    _bridge_tg_to_qq_paused = True
+    _bridge_tg_to_qq_paused = not _bridge_tg_to_qq_paused
     tg_bot = await get_tg_bot()
     if tg_bot is not None:
-        await tg_bot.send_message(chat_id=chat_id, text="乳了！已临时关闭 TG→QQ 转发")
+        if _bridge_tg_to_qq_paused:
+            await tg_bot.send_message(
+                chat_id=chat_id, text="乳了！已临时关闭 TG→QQ 转发"
+            )
+        else:
+            await tg_bot.send_message(chat_id=chat_id, text="已恢复 TG→QQ 转发")
 
 
 # ============================================================
@@ -263,10 +268,13 @@ async def handle_ob_sese(event: OB11MessageEvent):
     group_id = str(event.group_id) if is_group else ""
     if is_group and group_id != str(config.onebot2tg_bridge_group_id):
         return
-    _bridge_qq_to_tg_paused = True
+    _bridge_qq_to_tg_paused = not _bridge_qq_to_tg_paused
     ob11_bot = await get_ob11_bot()
     if ob11_bot is not None:
-        msg = OB11Message([OB11Segment.text("涩涩时间！已临时关闭 QQ→TG 转发")])
+        if _bridge_qq_to_tg_paused:
+            msg = OB11Message([OB11Segment.text("涩涩时间！已临时关闭 QQ→TG 转发")])
+        else:
+            msg = OB11Message([OB11Segment.text("已恢复 QQ→TG 转发")])
         if is_group:
             await ob11_bot.send_group_msg(group_id=event.group_id, message=msg)
         else:
