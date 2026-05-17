@@ -1,8 +1,8 @@
-from nonebot.plugin import PluginMetadata
 from nonebot import get_plugin_config
+from nonebot.plugin import PluginMetadata
 
-from .config import Config
 from . import forwarder
+from .config import Config
 
 config = get_plugin_config(Config)
 forwarder.config = config
