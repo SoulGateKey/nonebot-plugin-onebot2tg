@@ -284,7 +284,7 @@ async def handle_ob_sese(event: OB11MessageEvent):
 # ============================================================
 #  TG 消息处理器（仅互通模式）
 # ============================================================
-tg_msg = on_message(rule=is_type(TGMessageEvent))
+tg_msg = on_message(rule=is_type(TGMessageEvent), block=False)
 
 
 @tg_msg.handle()
@@ -326,7 +326,7 @@ async def handle_tg_message(event: TGMessageEvent):
 # ============================================================
 #  OneBot 消息处理器（互通 + 转发模式）
 # ============================================================
-ob11_msg = on_message(rule=is_type(OB11MessageEvent))
+ob11_msg = on_message(rule=is_type(OB11MessageEvent), block=False)
 
 
 @ob11_msg.handle()
