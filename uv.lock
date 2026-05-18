@@ -902,7 +902,7 @@ wheels = [
 
 [[package]]
 name = "nonebot-plugin-onebot2tg"
-version = "1.0.10"
+version = "1.0.11"
 source = { editable = "." }
 dependencies = [
     { name = "httpx" },
