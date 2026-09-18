@@ -21,3 +21,24 @@ async def test_pip(app: App):
         ctx.receive_event(bot, event)
         ctx.should_call_send(event, Message("nonebot2"), result=None, bot=bot)
         ctx.should_finished()
+
+
+def test_blocked_word_match():
+    from nonebot_plugin_onebot2tg import forwarder
+
+    forwarder.config.onebot2tg_blocked_words = ["badword", "敏感词"]
+    try:
+        assert forwarder._match_blocked_word("hello world") is None
+        assert forwarder._match_blocked_word("") is None
+        assert forwarder._match_blocked_word("this is badword!") == "badword"
+        assert forwarder._match_blocked_word("BADWORD") == "badword"
+        assert forwarder._match_blocked_word("有敏感词哦") == "敏感词"
+    finally:
+        forwarder.config.onebot2tg_blocked_words = []
+
+
+def test_blocked_word_empty_config():
+    from nonebot_plugin_onebot2tg import forwarder
+
+    forwarder.config.onebot2tg_blocked_words = []
+    assert forwarder._match_blocked_word("任何内容") is None

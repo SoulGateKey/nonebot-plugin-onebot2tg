@@ -28,3 +28,8 @@ class Config(BaseModel):
 
     onebot2tg_forward_filter_list: list[str | int] = []
     """转发模式过滤列表：QQ号或群号列表。黑名单模式下不转发这些来源的消息；白名单模式下只转发这些来源的消息"""
+
+    # 屏蔽词（TG→QQ 方向审查）
+    onebot2tg_blocked_words: list[str] = []
+    """屏蔽词列表：TG→QQ 转发时，若消息内容或发送者用户名命中屏蔽词，
+    则拦截整条消息（不区分大小写）"""

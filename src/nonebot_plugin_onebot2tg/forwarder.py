@@ -75,6 +75,24 @@ def _tg_display_name(event: TGMessageEvent) -> str:
     return event.get_user_id()
 
 
+def _match_blocked_word(text: str) -> str | None:
+    """检查文本是否命中屏蔽词，命中返回该词，未命中返回 None（不区分大小写）"""
+    if not text or not config.onebot2tg_blocked_words:
+        return None
+    lowered = text.lower()
+    for word in config.onebot2tg_blocked_words:
+        if word and word.lower() in lowered:
+            return word
+    return None
+
+
+def _tg_message_plain_text(event: TGMessageEvent) -> str:
+    """提取 TG 消息中的纯文本内容"""
+    return "".join(
+        seg.data.get("text", "") for seg in event.get_message() if seg.type == "text"
+    )
+
+
 # ============================================================
 #  下载 TG 文件（走代理）
 # ============================================================
@@ -309,6 +327,15 @@ async def handle_tg_message(event: TGMessageEvent):
         return
 
     display_name = _tg_display_name(event)
+
+    # 屏蔽词审查：发送者用户名和消息内容都检查
+    hit = _match_blocked_word(display_name)
+    if hit is None:
+        hit = _match_blocked_word(_tg_message_plain_text(event))
+    if hit is not None:
+        logger.info(f"[互通] 拦截 TG 消息（命中屏蔽词: {hit}，发送者: {display_name}）")
+        return
+
     ob11_msg = await _tg_message_to_ob11(tg_bot, event)
     prefix = OB11Segment.text(f"{display_name}:\n")
     final_msg = OB11Message([prefix]) + ob11_msg
