@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from nonebot import logger, get_adapter
 from nonebot.rule import is_type
 from nonebot.drivers import Request
@@ -75,22 +77,15 @@ def _tg_display_name(event: TGMessageEvent) -> str:
     return event.get_user_id()
 
 
-def _match_blocked_word(text: str) -> str | None:
-    """检查文本是否命中屏蔽词，命中返回该词，未命中返回 None（不区分大小写）"""
+def _censor_text(text: str) -> str:
+    """将文本中的屏蔽词替换为 ****（不区分大小写）"""
     if not text or not config.onebot2tg_blocked_words:
-        return None
-    lowered = text.lower()
+        return text
+    censored = text
     for word in config.onebot2tg_blocked_words:
-        if word and word.lower() in lowered:
-            return word
-    return None
-
-
-def _tg_message_plain_text(event: TGMessageEvent) -> str:
-    """提取 TG 消息中的纯文本内容"""
-    return "".join(
-        seg.data.get("text", "") for seg in event.get_message() if seg.type == "text"
-    )
+        if word:
+            censored = re.sub(re.escape(word), "****", censored, flags=re.IGNORECASE)
+    return censored
 
 
 # ============================================================
@@ -129,7 +124,7 @@ async def _tg_message_to_ob11(tg_bot: TGBot, event: TGMessageEvent) -> OB11Messa
 
     for seg in event.get_message():
         if seg.type == "text":
-            segments.append(OB11Segment.text(seg.data.get("text", "")))
+            segments.append(OB11Segment.text(_censor_text(seg.data.get("text", ""))))
         elif seg.type == "photo":
             file_id = seg.data.get("file", "")
             if file_id:
@@ -326,15 +321,8 @@ async def handle_tg_message(event: TGMessageEvent):
     if ob11_bot is None:
         return
 
-    display_name = _tg_display_name(event)
-
-    # 屏蔽词审查：发送者用户名和消息内容都检查
-    hit = _match_blocked_word(display_name)
-    if hit is None:
-        hit = _match_blocked_word(_tg_message_plain_text(event))
-    if hit is not None:
-        logger.info(f"[互通] 拦截 TG 消息（命中屏蔽词: {hit}，发送者: {display_name}）")
-        return
+    # 屏蔽词审查：发送者用户名和消息内容中的违规词替换为 ****
+    display_name = _censor_text(_tg_display_name(event))
 
     ob11_msg = await _tg_message_to_ob11(tg_bot, event)
     prefix = OB11Segment.text(f"{display_name}:\n")

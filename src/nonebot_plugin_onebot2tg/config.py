@@ -32,4 +32,4 @@ class Config(BaseModel):
     # 屏蔽词（TG→QQ 方向审查）
     onebot2tg_blocked_words: list[str] = []
     """屏蔽词列表：TG→QQ 转发时，若消息内容或发送者用户名命中屏蔽词，
-    则拦截整条消息（不区分大小写）"""
+    则将违规词替换为 ****（不区分大小写）"""

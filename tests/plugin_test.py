@@ -23,22 +23,23 @@ async def test_pip(app: App):
         ctx.should_finished()
 
 
-def test_blocked_word_match():
+def test_censor_text():
     from nonebot_plugin_onebot2tg import forwarder
 
     forwarder.config.onebot2tg_blocked_words = ["badword", "敏感词"]
     try:
-        assert forwarder._match_blocked_word("hello world") is None
-        assert forwarder._match_blocked_word("") is None
-        assert forwarder._match_blocked_word("this is badword!") == "badword"
-        assert forwarder._match_blocked_word("BADWORD") == "badword"
-        assert forwarder._match_blocked_word("有敏感词哦") == "敏感词"
+        assert forwarder._censor_text("hello world") == "hello world"
+        assert forwarder._censor_text("") == ""
+        assert forwarder._censor_text("this is badword!") == "this is ****!"
+        assert forwarder._censor_text("BADWORD") == "****"
+        assert forwarder._censor_text("有敏感词哦") == "有****哦"
+        assert forwarder._censor_text("badword和敏感词") == "****和****"
     finally:
         forwarder.config.onebot2tg_blocked_words = []
 
 
-def test_blocked_word_empty_config():
+def test_censor_text_empty_config():
     from nonebot_plugin_onebot2tg import forwarder
 
     forwarder.config.onebot2tg_blocked_words = []
-    assert forwarder._match_blocked_word("任何内容") is None
+    assert forwarder._censor_text("任何内容") == "任何内容"
